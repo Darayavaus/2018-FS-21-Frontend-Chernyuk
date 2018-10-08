@@ -1,5 +1,6 @@
 import bootstrapStyles from '../../static/css/bootstrap.css'
 
+
 const template = `
 	<style>${bootstrapStyles.toString()}</style>
 	<form>
@@ -36,11 +37,17 @@ class MessageForm extends HTMLElement {
 		var message = this.shadowRoot.querySelector('.chat');
 		var localStorage = window.localStorage;
 		var input_form = this.shadowRoot.querySelector('.form-control');
+		var user = localStorage.getItem('user');
+		var colors = ['Crimson', 'green','DarkGoldenRod',  'CornflowerBlue'];
+		var idxcolor = 0;
 		this._elements = {
 			form : form,
 			message : message,
 			localStorage : localStorage,
-			input_form : input_form
+			input_form : input_form,
+			user : user,
+			colors : colors,
+			idxcolor : idxcolor
 		};
 	}
 
@@ -49,11 +56,17 @@ class MessageForm extends HTMLElement {
 	}
 
 	_onSubmit (event) {
-		var user = localStorage.getItem('user');
-		this._elements.message.innerText += user + ' said: ' + Array.from(this._elements.form.elements).map(
-			el => el.value
-		).join('\n');
+		var current_user = localStorage.getItem('user');
+		this._elements.message.innerHTML += '<div class="user-message">' + current_user + ' said: ' + this._elements.input_form.value + '</div>';
 		this._elements.input_form.value = '';
+
+		var idxlast = this.shadowRoot.querySelectorAll('.user-message').length - 1;
+		if (current_user != this._elements.user) {
+			this._elements.idxcolor  = (this._elements.idxcolor + 1) % this._elements.colors.length;
+			this._elements.user = current_user;
+		}
+		this.shadowRoot.querySelectorAll('.user-message')[idxlast].style.color = this._elements.colors[this._elements.idxcolor];
+
 		event.preventDefault();
 		return false;
 	}
