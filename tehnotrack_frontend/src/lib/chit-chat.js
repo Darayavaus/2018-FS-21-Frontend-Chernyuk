@@ -56,6 +56,16 @@ class MessageForm extends HTMLElement {
 
 	_onSubmit (event) {
 		var current_user = localStorage.getItem('user');
+
+		var formData = new FormData(this._elements.form);
+		formData.append('user', current_user);
+		fetch('https://httpbin.org/anything', {
+		  method: 'POST',
+		  body: formData
+		}).then(response => response.json())
+		.then(response => console.log('Success:', JSON.stringify(response)))
+		.catch(error => console.error('Error:', error));
+
 		this._elements.message.innerHTML += '<div class="user-message">' + current_user + ' said: ' + this._elements.input_form.value + '</div>';
 		this._elements.input_form.value = '';
 
@@ -122,7 +132,18 @@ class LogInForm extends HTMLElement{
 	_onSubmit (event) {
 		this._elements.localStorage.setItem('user', this._elements.user.value);
 		this._elements.loggedin.innerText = this._elements.user.value;
-		this._elements.user.value = "";
+
+		var formData = new FormData(this._elements.form);
+		formData.append('icon', this._elements.localStorage.getItem('icon'));
+		fetch('https://httpbin.org/anything', {
+		  method: 'POST',
+		  body: formData
+		}).then(response => response.json())
+		.then(response => console.log('Success:', JSON.stringify(response)))
+		.catch(error => console.error('Error:', error));
+
+  	this._elements.user.value = "";
+
 		event.preventDefault();
 		return false;
 	}
