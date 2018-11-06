@@ -1,6 +1,8 @@
 import bootstrapStyles from '../../static/css/bootstrap.css'
 import dropzoneStyles from './dropzone.css'
 
+import getBase64 from './base64.js';
+
 class DropZone extends HTMLElement {
 	constructor () {
 		super();
@@ -16,7 +18,7 @@ class DropZone extends HTMLElement {
 
 	_initElements () {
 		var dropzone = this.shadowRoot.querySelector('.drop-zone');
-		dropzone.src="https://melodics.com/account/img/blank-profile-picture-instructions.png";
+		dropzone.src = "https://melodics.com/account/img/blank-profile-picture-instructions.png";
 		var localStorage = window.localStorage;
 		this._elements = {
 			dropzone: dropzone,
@@ -48,13 +50,17 @@ class DropZone extends HTMLElement {
 	  event.preventDefault();
 
 	  var dt = event.dataTransfer;
-	  var files = dt.files;
+	  var file = dt.files[0];
 
-	  const url = URL.createObjectURL(files[0]);
+	  const url = URL.createObjectURL(file);
 		const image = new Image;
 		// image.onload = () => URL.revokeObjectURL(url);
 		this._elements.dropzone.src = url;
-		localStorage.setItem('icon', url);
+		var promise = getBase64(file);
+		promise.then( function(base64) {
+			window.localStorage.setItem('icon', base64);
+		});
+		// revoke url from localStorage
 		event.target.style.border = "";
 	}
 }
