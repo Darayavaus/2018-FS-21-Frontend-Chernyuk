@@ -1,140 +1,49 @@
-import bootstrapStyles from '../../static/css/bootstrap.css'
+import React from 'react';
 
-const template = `
-	<style>${bootstrapStyles.toString()}</style>
-	<form>
-		<div class="form-group">
-			<div class="chat"></div>
-			<input class="form-control" name="message_text" placeholder="Введите сообщение" >
-		</div>
-		<input class="btn btn-primary float-sm-none float-md-right" type="submit">
-	</form>
-`;
+import '../static/css/bootstrap.css'
+import './list.css'
 
-class MessageForm extends HTMLElement {
-	constructor () {
-		super();
-		const shadowRoot = this.attachShadow({mode: 'open'});
-		shadowRoot.innerHTML = template;
-		this._initElements();
-		this._addHandlers();
-	}
 
-	static get observedAttributes() {
-		return [
-			"action",
-			"method"
-		]
-	}
-
-	attributeChangedCallback(attrName, oldVal, newVal) {
-		this._elements.form[attrName] = newVal;
-	}
-
-	_initElements () {
-		var form = this.shadowRoot.querySelector('form');
-		var message = this.shadowRoot.querySelector('.chat');
-		var localStorage = window.localStorage;
-		var input_form = this.shadowRoot.querySelector('.form-control');
-		var user = localStorage.getItem('user');
-		var colors = ['Crimson', 'green','DarkGoldenRod',  'CornflowerBlue'];
-		var idxcolor = 0;
-		this._elements = {
-			form : form,
-			message : message,
-			localStorage : localStorage,
-			input_form : input_form,
-			user : user,
-			colors : colors,
-			idxcolor : idxcolor
-		};
-	}
-
-	_addHandlers () {
-		this._elements.form.addEventListener('submit', this._onSubmit.bind(this));
-	}
-
-	_onSubmit (event) {
-		var current_user = localStorage.getItem('user');
-
-		var formData = new FormData(this._elements.form);
-		formData.append('user', current_user);
-		fetch('https://httpbin.org/anything', {
-		  method: 'POST',
-		  body: formData
-		}).then(response => response.json())
-		.then(response => console.log('Success:', JSON.stringify(response)))
-		.catch(error => console.error('Error:', error));
-
-		this._elements.message.innerHTML += '<div class="user-message">' + current_user + ' said: ' + this._elements.input_form.value + '</div>';
-		this._elements.input_form.value = '';
-
-		var idxlast = this.shadowRoot.querySelectorAll('.user-message').length - 1;
-		if (current_user != this._elements.user) {
-			this._elements.idxcolor  = (this._elements.idxcolor + 1) % this._elements.colors.length;
-			this._elements.user = current_user;
+class MessageForm extends React.Component {
+	constructor (props) {
+		const chatId = props.id;
+		super(props);
+		let newHistory;
+		try {
+			newHistory = Array.from(JSON.parse(window.localStorage.getItem(chatId)));
+		} catch (err) {
+			newHistory = [];
 		}
-		this.shadowRoot.querySelectorAll('.user-message')[idxlast].style.color = this._elements.colors[this._elements.idxcolor];
-
-		event.preventDefault();
-		return false;
-	}
-}
-
-
-class LogInForm extends HTMLElement{
-	constructor () {
-		super();
-		const shadowRoot = this.attachShadow({mode: 'open'});
-		shadowRoot.innerHTML = `
-			<style>${bootstrapStyles.toString()}</style>
-			<form class="mt-5">
-				<h5 class="logged_in">Anonymous</h5>
-        <div class="form-group mt-2">
-          <input class="form-control" placeholder="username" name="username">
-        </div>
-				<input class="btn btn-primary float-sm-none float-md-right" type="submit" value="Log in"> 
-			</form>
-		`;
-		this._initElements();
-		this._addHandlers();
+		this.state = ({
+			colors: ['color1', 'color2', 'color3', 'color4'],
+			nextColor: 0,
+			message: '',
+			user: window.localStorage.getItem('user') || 'Anonymous',
+			history: newHistory,
+		});
 	}
 
-	static get observedAttributes() {
-		return [
-			"action",
-			"method"
-		]
+	handleFormChange = (event) => {
+		this.setState({
+			message: event.target.value,
+		});
 	}
 
-	attributeChangedCallback(attrName, oldVal, newVal) {
-		this._elements.form[attrName] = newVal;
-	}
+	handleSubmit = (event) => {
+		const currentUser = window.localStorage.getItem('user') || 'Anonymous';
+		const message = this.state.message;
+		const history = this.state.history.slice();
+		const colors = this.state.colors;
 
-	_initElements () {
-		var form = this.shadowRoot.querySelector('form');
-		var localStorage = window.localStorage;
-		var loggedin = this.shadowRoot.querySelector('.logged_in');
-		var user = this.shadowRoot.querySelector('.form-control');
-		localStorage.setItem('user', 'Anonymous')
-		this._elements = {
-			form: form,
-			localStorage: localStorage,
-			loggedin: loggedin,
-			user: user
-		};
-	}
+		if (currentUser !== this.state.user) {
+			this.setState({
+				nextColor: (this.state.nextColor + 1) % this.state.colors.length,
+			});
+		}
 
-	_addHandlers () {
-		this._elements.form.addEventListener('submit', this._onSubmit.bind(this));
-	}
-
-	_onSubmit (event) {
-		this._elements.localStorage.setItem('user', this._elements.user.value);
-		this._elements.loggedin.innerText = this._elements.user.value;
-
-		var formData = new FormData(this._elements.form);
-		formData.append('icon', this._elements.localStorage.getItem('icon'));
+		let formData = new FormData();
+		formData.append('username', currentUser);
+		formData.append('message', message);
 		fetch('https://httpbin.org/anything', {
 		  method: 'POST',
 		  body: formData
@@ -142,14 +51,52 @@ class LogInForm extends HTMLElement{
 		.then(response => console.log('Success:', JSON.stringify(response)))
 		.catch(error => console.error('Error:', error));
 
-  	this._elements.user.value = "";
+		let newHistory = history.concat([{
+				      	user: currentUser,
+				      	message: message,
+				      	colorClass: colors[this.state.nextColor],
+				      }]);
+		console.log(newHistory);
+		this.setState({
+			history: newHistory,
+		});
+		window.localStorage.setItem(this.props.id, JSON.stringify(newHistory));
 
 		event.preventDefault();
-		return false;
 	}
 
+	render() {
+		const history = this.state.history;
+		const chatHistory = history.map((item, key) => {
+			return (
+        <li key={key} className="color1">
+          {item.user} said: {item.message}
+        </li>
+      );
+		});
+		/*TODO: set color*/
 
+		return (
+			<form>
+				<div className="form-group">
+					<ul className="chat">
+						{chatHistory}
+					</ul>
+					<input 
+					 className="form-control" 
+					 name="message_text" 
+					 placeholder="Start typing..."
+					 onChange={this.handleFormChange} 
+					/>
+				</div>
+				<input 
+				 className="btn btn-primary float-sm-none float-md-right" 
+				 type="submit" 
+				 onClick={this.handleSubmit} 
+				/>
+			</form>
+		);
+	}
 }
 
-customElements.define('log-in-form', LogInForm);
-customElements.define('message-form', MessageForm);
+export default MessageForm;
