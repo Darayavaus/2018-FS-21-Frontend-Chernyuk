@@ -1,0 +1,20 @@
+ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.color1 {
+    color: 'Crimson';
+}
+
+.color2 {
+    color: 'green';
+}
+
+.color3 {
+    color: 'DarkGoldenRod';
+}
+
+.color4 {
+    color: 'CornflowerBlue';
+}
