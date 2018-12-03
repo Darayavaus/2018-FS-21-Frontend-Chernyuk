@@ -20,7 +20,13 @@ class ConnectedDataProvider extends Component {
       placeholder: "Loading..."
     };
   componentDidMount() {
-    fetch(this.props.endpoint)
+    const fetch_request = {
+      headers: {
+          Authorization: `JWT ${localStorage.getItem('token')}`
+        }
+    };
+    console.log(fetch_request);
+    fetch(this.props.endpoint, fetch_request)
       .then(response => {
         if (response.status !== 200) {
           return this.setState({ placeholder: "Something went wrong" });

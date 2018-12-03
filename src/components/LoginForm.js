@@ -25,11 +25,24 @@ class ConnectedLoginForm extends React.Component {
 
     const {username, password} = this.state;
     let formData = new FormData();
-    formData.append('username', username);
-    formData.append('password', password);
+    formData.append('Username', username);
+    formData.append('Password', password);
 
-    console.log(this.props.login);
-    this.props.login(username, password);
+    const login_request = {
+      method: 'POST',
+      headers: new Headers({ "Content-Type": "application/json" }),
+      body: JSON.stringify(this.state),
+    };
+    console.log(login_request);
+    fetch('http://localhost:8000/token-auth/', login_request)
+      .then(res => res.json())
+      .then(json => {
+        localStorage.setItem('token', json.token);
+        this.setState({
+          logged_in: true,
+          username: this.state.username
+        });
+      });
 
     this.setState({username: "", password: ""});
   }

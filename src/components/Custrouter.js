@@ -20,9 +20,6 @@ function Custrouter() {
           <li>
             <Link to='/posts'>Posts</Link>
           </li>
-          <li>
-            <Link to='/subreddits'>Subreddits</Link>
-          </li>
         </ul>
 
         <hr />
@@ -30,7 +27,6 @@ function Custrouter() {
         <Route exact path='/' component={Home} />
         <Route exact path='/login' component={Login} />
         <Route path='/posts' component={PostList} />
-        <Route path='/subreddits' component={SubredditList} />
 
       </div>
     </Router>

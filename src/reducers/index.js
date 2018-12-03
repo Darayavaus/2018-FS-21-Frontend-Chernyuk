@@ -7,7 +7,9 @@ const initialState = {
   refresh: undefined,
   errors: {},
   subreddits: [],
-  data: []
+  data: [],
+  logged_in: false,
+  username: "",
 };
 
 const rootReducer = (state=initialState, action) => {

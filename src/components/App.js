@@ -10,5 +10,3 @@ const App = () => (
 );
 
 export default App;
-// const wrapper = document.getElementById("app");
-// wrapper ? ReactDOM.render(<App />, wrapper) : null;
